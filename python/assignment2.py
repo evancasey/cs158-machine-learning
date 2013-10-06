@@ -250,7 +250,7 @@ def ContinuousBinaryDecisionTreeLearner(dataset):
 
 #___________________________________________________________________________________________________
 
-def testNormalLearner(data, rounds):
+def testNaryLearner(data, rounds):
     if data == "restaurant":
         attributeNames = "Alternate, Bar, Fri/Sat, Hungry, Patrons, Price, Raining, Reservation, Type, WaitEstimate, WillWait"
         ds = DataSet(name='../data/restaurant', attrnames=attributeNames)
@@ -261,68 +261,76 @@ def testNormalLearner(data, rounds):
         attributeNames = "timestamp, cylinder_number, customer, job_number, paper_type, ink_type, paper_mill_location, plating_tank, proof_cut, viscosity, caliper, ink_temperature, humifity, roughness, blade_pressure, varnish_pct, press_speed, ink_pct, band_type"
         ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
         
+
+    ''' Non-Boosted '''
+
     # make the decision tree
     dtLearner = DecisionTreeLearner(ds)
     #dtLearner.display()
-    
-    print "\n Training Error: "
 
-    print test(DecisionTreeLearner(ds),ds)
-    
-    cross_validation_result = cross_validation(DecisionTreeLearner, ds)
+    results = {}
 
-    print "Running cross validation for NormalLearner... %s" % str(cross_validation_result)
+    results['k'] = rounds
+
+    # normal training error
+    results['normal_training_error'] = test(DecisionTreeLearner(ds),ds)
+    
+    # normal testing error
+    results['normal_testing_error'] = cross_validation(DecisionTreeLearner, ds)
+
+    print "Running cross validation for NormalLearner... %s" % str(results['normal_testing_error'])
+
+
+    ''' Boosted '''
 
     #returns train
     adaLearner = AdaBoost(WeightedLearner(DecisionTreeLearner), rounds)
 
-    #training error
-    print "\n Training Error: "
-    print test(adaLearner(ds),ds)
+    # boosted training error
+    results['boosted_training_error'] = test(adaLearner(ds),ds)
 
-    print "\n Test Error:"
-
-    cross_validation_result = cross_validation(adaLearner, ds)
-
-    print "\n"
+    # boosted testing error
+    results['boosted_testing_error'] = cross_validation(adaLearner, ds)
     
-    print "Running cross validation for AdaBoostNormalLearner... %s \n" % str(cross_validation_result)
+    print "Running cross validation for AdaBoostNormalLearner... %s \n" % str(results['boosted_testing_error'])
+
+    return results
     
-def testBinaryLearner(data, rounds):
-    if data == "restaurant": 
-        attributeNames = "Alternate, Bar, Fri/Sat, Hungry, Patrons, Price, Raining, Reservation, Type, WaitEstimate, WillWait"
-        ds = DataSet(name='../data/restaurant', attrnames=attributeNames)
-    elif data == "cancer":
-        attributeNames = "Class, age, menopause, tumor-size, inv-nodes, node-caps, deg-malig, breast, breast-quad, irradiat"
-        ds = DataSet(name='../breast-cancer/breast-cancer', attrnames=attributeNames)
-    elif data == "new_bands":
-        attributeNames = "timestamp, cylinder_number, customer, job_number, paper_type, ink_type, paper_mill_location, plating_tank, proof_cut, viscosity, caliper, ink_temperature, humifity, roughness, blade_pressure, varnish_pct, press_speed, ink_pct, band_type"
-        ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
+# def testBinaryLearner(data, rounds):
+#     if data == "restaurant": 
+#         attributeNames = "Alternate, Bar, Fri/Sat, Hungry, Patrons, Price, Raining, Reservation, Type, WaitEstimate, WillWait"
+#         ds = DataSet(name='../data/restaurant', attrnames=attributeNames)
+#     elif data == "cancer":
+#         attributeNames = "Class, age, menopause, tumor-size, inv-nodes, node-caps, deg-malig, breast, breast-quad, irradiat"
+#         ds = DataSet(name='../breast-cancer/breast-cancer', attrnames=attributeNames)
+#     elif data == "new_bands":
+#         attributeNames = "timestamp, cylinder_number, customer, job_number, paper_type, ink_type, paper_mill_location, plating_tank, proof_cut, viscosity, caliper, ink_temperature, humifity, roughness, blade_pressure, varnish_pct, press_speed, ink_pct, band_type"
+#         ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
     
-    # make the decision tree
-    dtLearner = BinaryDecisionTreeLearner(ds)
-    #dtLearner.display()
+#     # make the decision tree
+#     dtLearner = BinaryDecisionTreeLearner(ds)
+#     #dtLearner.display()
     
-    print "\n Training Error: "
-    print test(BinaryDecisionTreeLearner(ds),ds)
+#     print "\n Training Error: "
+#     print test(BinaryDecisionTreeLearner(ds),ds)
 
-    cross_validation_result = cross_validation(BinaryDecisionTreeLearner, ds)
+#     cross_validation_result = cross_validation(BinaryDecisionTreeLearner, ds)
     
-    print "Running cross validation for BinaryLearner... %s" % str(cross_validation_result)
+#     print "Running cross validation for BinaryLearner... %s" % str(cross_validation_result)
 
-    #returns train
-    adaLearner = AdaBoost(WeightedLearner(BinaryDecisionTreeLearner), rounds)
+#     #returns train
+#     adaLearner = AdaBoost(WeightedLearner(BinaryDecisionTreeLearner), rounds)
 
-    print "\n Training Error: "
-    print test(adaLearner(ds),ds)
+#     print "\n Training Error: "
+#     print test(adaLearner(ds),ds)
 
-    print "\n Test Error:"
+#     print "\n Test Error:"
 
-    cross_validation_result = cross_validation(adaLearner, ds)
+#     cross_validation_result = cross_validation(adaLearner, ds)
 
-    print "\n"
+#     print "\n"
     
-    print "Running cross validation for AdaBoostBinaryLearner... %s \n" % str(cross_validation_result)
+#     print "Running cross validation for AdaBoostBinaryLearner... %s \n" % str(cross_validation_result)
     
 # def testContinuousBinaryLearner(data):
 #     if data == "restaurant": 
@@ -371,26 +379,68 @@ def testBinaryLearner(data, rounds):
 #     #print "intervals" + str(intervals)
 #     return intervals
     
+def average_results(results_dict):
+    # returns list of avg results for a given num_rounds
+    
+    normal_testing_avg = sum(results_dict[j]['normal_testing_error'] for j in range(9)) / 10
+    boosted_testing_avg = sum(results_dict[j]['boosted_testing_error'] for j in range(9)) / 10
+    normal_training_avg = sum(results_dict[j]['normal_training_error'] for j in range(9)) / 10
+    boosted_training_avg = sum(results_dict[j]['boosted_training_error'] for j in range(9)) / 10
+
+    return [normal_testing_avg, boosted_testing_avg, normal_training_avg, boosted_training_avg]
+
+
+def compose_results(avg_results_dict):
+    # returns dict where each result type is key and values are a list of each kth result
+    
+    plot_dict = {'normal_testing_avg': [],
+                 'boosted_testing_avg': [],
+                 'normal_training_avg': [],
+                 'boosted_training_avg': []}
+
+    for k,v in avg_results_dict.items():
+        plot_dict['normal_testing_avg'].append(v[0])
+        plot_dict['boosted_testing_avg'].append(v[1])
+        plot_dict['normal_training_avg'].append(v[2])
+        plot_dict['boosted_training_avg'].append(v[3])
+
+    return plot_dict
     
 if __name__ == "__main__":
 
-    values = [1,2,5,10,25]
+    num_rounds = [1,2]
 
-    for i in values:
+    # stores the averaged results
+    restaurant_avg_results = {}
+    cancer_avg_results = {}
 
-        # print "\n-------NUM ROUNDS: %s ---------" % i
+    for k in num_rounds:
 
-        print "\nRESTAURANT: \n"
+        # stores the results for each j in 0-9
+        restaurant_results = {}
+        cancer_results = {}
 
-        testNormalLearner("restaurant", int(i))
-        testBinaryLearner("restaurant", int(i))
+        for j in range(9):
 
-        print "\nCANCER: \n"
+            print "\nRESTAURANT: \n"
+            restaurant_results[j] = testNaryLearner("restaurant", int(k))
+            # testBinaryLearner("restaurant", int(i))
 
-        testNormalLearner("cancer", int(i))
-        testBinaryLearner("cancer", int(i))
-        #testContinuousBinaryLearner("restaurant")
+            print "\nCANCER: \n"
+            cancer_results[j] = testNaryLearner("cancer", int(k))
+            # testBinaryLearner("cancer", int(i))
+        
+
+        # averages results for this n-round experiment
+        restaurant_avg_results[k] = average_results(restaurant_results)
+        cancer_avg_results[k] = average_results(cancer_results)
+
+    # compose results into plot format
+    rest_plot_dict = compose_results(restaurant_avg_results)
+    canc_plot_dict = compose_results(cancer_avg_results)
+
+    # plot averages
+        
 
     
-    #______________________________________________________________________________
 
