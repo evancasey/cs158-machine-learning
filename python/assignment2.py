@@ -1,10 +1,11 @@
 from learning import *
 import pdb
 import math
+import random
 import os
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class BinaryDecisionFork:
     """A fork of a decision tree holds an attribute to test, and a dict 
@@ -263,16 +264,16 @@ def testNaryLearner(data, rounds):
         attributeNames = "timestamp, cylinder_number, customer, job_number, paper_type, ink_type, paper_mill_location, plating_tank, proof_cut, viscosity, caliper, ink_temperature, humifity, roughness, blade_pressure, varnish_pct, press_speed, ink_pct, band_type"
         ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
         
+    results = {}
 
-    ''' Non-Boosted '''
+    results['k'] = rounds
+
+
+    ''' Non-boosted or bagged'''
 
     # make the decision tree
     dtLearner = DecisionTreeLearner(ds)
     #dtLearner.display()
-
-    results = {}
-
-    results['k'] = rounds
 
     # normal training error
     results['normal_training_error'] = test(DecisionTreeLearner(ds),ds)
@@ -296,6 +297,18 @@ def testNaryLearner(data, rounds):
     
     print "Running cross validation for AdaBoostNormalLearner... %s \n" % str(results['boosted_testing_error'])
 
+
+    ''' Bagged '''
+
+    # make decision tree
+    baggedLearner = create_bagging_learners(DecisionTreeLearner, ds, rounds, len(ds.examples))
+
+    results['bagged_training_error'] = test(baggedLearner(ds), ds)
+
+    results['bagged_testing_error'] = cross_validation(baggedLearner, ds)
+
+    print "Running cross validation for NormalBaggedLearner... %s \n" % str(results['bagged_testing_error'])
+
     return results
     
 
@@ -311,7 +324,7 @@ def testNaryStumpLearner(data, rounds):
         ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
         
 
-    ''' Non-Boosted '''
+    ''' Normal'''
 
     # make the decision tree
     stumpDTLearner = DecisionTreeStump(ds)
@@ -345,6 +358,48 @@ def testNaryStumpLearner(data, rounds):
 
     return results
 
+#___________________________________________________________________________________________________
+
+def create_bagging_learners(learner, dataset, rounds, n):
+    # Take in a learner, dataset, num_samples, sample size
+    # Returns list of learners
+    
+    def train(dataset):
+        bagged_learners = []
+
+        for r in range(rounds):
+            sample = []
+            for i in range(n):            
+                sample.append(random.choice(dataset.examples))
+            dataset.examples = sample
+
+            # passed modified dataset examples    
+            bagged_learners.append(learner(dataset))
+
+        return process_learners(bagged_learners, dataset)
+
+    return train
+    
+
+def process_learners(bagged_learners, dataset):
+    # Takes in a list of learners
+    # Iterates through obs, for each obs takes majority vote from each learner in list
+    
+    def predict(example):
+        return get_mode(predictor(example) for predictor in bagged_learners)
+
+    return predict
+
+    
+
+def get_mode(values):
+    # Takes a list of classifications
+    # Returns majority
+    
+    totals = defaultdict(int)
+    for v in values:
+        totals[v] += 1
+    return max(totals.keys(), key=totals.get)
 
 
 
