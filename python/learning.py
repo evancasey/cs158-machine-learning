@@ -251,7 +251,6 @@ def NearestNeighborLearner(dataset, k=1):
     return predict
 
 #______________________________________________________________________________
-import pdb
 
 class DecisionFork:
     """A fork of a decision tree holds an attribute to test, and a dict 
@@ -296,6 +295,46 @@ class DecisionLeaf:
 
     def __repr__(self):
         return repr(self.result)
+
+#______________________________________________________________________________
+
+class BinaryDecisionFork:
+    """A fork of a decision tree holds an attribute to test, and a dict 
+    of branches, one for each of the attribute's values."""
+
+    def __init__(self, attr, attrname=None, branches=None):
+        "Initialize by saying what attribute this node tests."
+        self.attr_map = {}
+        update(self, attr=attr, attrname=attrname or attr,
+               branches=branches or {})
+
+    def __call__(self, example):
+        "Given an example, classify it using the attribute and the branches."
+        attrvalue = example[self.attr_map[self.attr].keys()[0]]
+        
+        if attrvalue == self.attr_map[self.attr].values()[0]:
+            return self.branches['Yes'](example)
+        else:
+            return self.branches['No'](example)
+
+    def add(self, val, subtree):
+        "Add a branch.  If self.attr = val, go to the given subtree."
+        self.branches[val] = subtree
+        
+    def update_attr_map(self, attr_map):
+        self.attr_map = attr_map
+
+    def display(self, indent=0):
+        name = self.attrname
+        print 'Test', name
+        for (val, subtree) in self.branches.items():
+            print ' '*4*indent, name, ': [is', self.attr_map[self.attr].values()[0], ']=', val, '==>',
+            subtree.display(indent+1)
+
+    def __repr__(self):
+        return ('DecisionFork(%r, %r, %r)'
+                % (self.attr, self.attrname, self.branches))
+
 
 
 #------------------------------------------------------------------------
@@ -355,6 +394,89 @@ def DecisionTreeStump(dataset):
 
     return stump_learner(dataset)
 
+def BinaryDecisionTreeStump(dataset):
+    
+    # Construct new attributes list and accompanying mapping
+
+    target, values = dataset.target, dataset.values
+    
+    #Create our new data structures
+    orig_attrs = dataset.inputs
+    new_attrs = []
+    attr_map = dict()
+    
+    num_count = 0
+    for a in dataset.inputs:
+        for v in values[a]:
+            attr_map[num_count] = {a:v} #update({count,2})
+            new_attrs.append(num_count)
+            num_count+=1
+            
+    #print "original attrs: %s \n\n new attrs: %s \n\n attrmap:%s\n\n" % (orig_attrs, new_attrs, attr_map)
+
+    def plurality_value(examples):
+        """Return the most popular target value for this set of examples.
+        (If target is binary, this is the majority; otherwise plurality.)"""
+        popular = argmax_random_tie(values[target],
+                                    lambda v: count(target, v, examples))
+        return DecisionLeaf(popular)
+
+    def count(attr, val, examples):
+        #print "attr: %s \n\n val: %s \n\n values: %s \n\n \n\n\n\n" % (attr, val, attr_map[attr].values()[0])
+        if (val == "Yes"): # corresponds to 'Yes' branch - does value fit boolean attribute?
+            return count_if(lambda e: e[attr_map[attr].keys()[0]] == attr_map[attr].values()[0], examples)
+        else:
+            return count_if(lambda e: e[attr_map[attr].keys()[0]] != attr_map[attr].values()[0], examples)
+
+    def all_same_class(examples):
+        "Are all these examples in the same target class?"
+        class0 = examples[0][target]
+        return all(e[target] == class0 for e in examples)
+
+    def choose_attribute(attrs, examples):
+        "Choose the attribute with the highest information gain."
+        return argmax_random_tie(attrs,
+                                 lambda a: information_gain(a, examples))
+
+    def information_gain(attr, examples):
+        "Return the expected reduction in entropy from splitting by attr."
+        def I(examples):
+            return information_content([count(target, v, examples)
+                                        for v in ['Yes','No']])
+        N = float(len(examples))
+        remainder = sum((len(examples_i) / N) * I(examples_i) # = (% of examples with that value * I(all those examples)
+                        for (v, examples_i) in split_by(attr, examples))
+        return I(examples) - remainder
+
+    def split_by(attr, examples):
+        
+        "Return a list of (val, examples) pairs for each val of attr."
+        
+        yes_list = []
+        no_list = []
+        for x in examples:
+            if x[attr_map[attr].keys()[0]] == attr_map[attr].values()[0]:
+                yes_list.append(x)
+            else:
+                no_list.append(x)
+            
+        list = []
+        list.append(('Yes',yes_list))
+        list.append(('No',no_list))
+
+        return list
+
+    def binary_stump(examples, attrs):
+        A = choose_attribute(attrs, examples)
+        stump = BinaryDecisionFork(A, dataset.attrnames[attr_map[A].keys()[0]])
+        stump.update_attr_map(attr_map)
+            
+        for (v_k, exs) in split_by(A, examples):
+            leaf = plurality_value(exs)
+            stump.add(v_k, leaf)
+        return stump
+    
+    return binary_stump(dataset.examples, dataset.inputs)
     
 #______________________________________________________________________________
 
@@ -432,6 +554,107 @@ def information_content(values):
     "Number of bits to represent the probability distribution in values."
     probabilities = normalize(removeall(0, values))
     return sum(-p * log2(p) for p in probabilities)
+
+#___________________________________________________________________________________________________
+
+
+def BinaryDecisionTreeLearner(dataset):
+    "[Fig. 18.5]"
+    
+    # Construct new attributes list and accompanying mapping
+
+    target, values = dataset.target, dataset.values
+    
+    #Create our new data structures
+    orig_attrs = dataset.inputs
+    new_attrs = []
+    attr_map = dict()
+    
+    num_count = 0
+    for a in dataset.inputs:
+        for v in values[a]:
+            attr_map[num_count] = {a:v} #update({count,2})
+            new_attrs.append(num_count)
+            num_count+=1
+            
+    #print "original attrs: %s \n\n new attrs: %s \n\n attrmap:%s\n\n" % (orig_attrs, new_attrs, attr_map)
+
+    def decision_tree_learning(examples, attrs, parent_examples=()):
+        if len(examples) == 0:
+            return plurality_value(parent_examples)
+        elif all_same_class(examples):
+            return DecisionLeaf(examples[0][target])
+        elif len(attrs) == 0:
+            return plurality_value(examples)
+        else:
+            A = choose_attribute(attrs, examples)
+            tree = BinaryDecisionFork(A, dataset.attrnames[attr_map[A].keys()[0]])
+            tree.update_attr_map(attr_map)
+            for (v_k, exs) in split_by(A, examples):
+                subtree = decision_tree_learning(
+                    exs, removeall(A, attrs), examples)
+                tree.add(v_k, subtree)
+            return tree
+
+    def plurality_value(examples):
+        """Return the most popular target value for this set of examples.
+        (If target is binary, this is the majority; otherwise plurality.)"""
+        popular = argmax_random_tie(values[target],
+                                    lambda v: count(target, v, examples))
+        return DecisionLeaf(popular)
+
+    def count(attr, val, examples):
+        #print "attr: %s \n\n val: %s \n\n values: %s \n\n \n\n\n\n" % (attr, val, attr_map[attr].values()[0])
+        if (val == "Yes"): # corresponds to 'Yes' branch - does value fit boolean attribute?
+            return count_if(lambda e: e[attr_map[attr].keys()[0]] == attr_map[attr].values()[0], examples)
+        else:
+            return count_if(lambda e: e[attr_map[attr].keys()[0]] != attr_map[attr].values()[0], examples)
+
+    def all_same_class(examples):
+        "Are all these examples in the same target class?"
+        class0 = examples[0][target]
+        return all(e[target] == class0 for e in examples)
+
+    def choose_attribute(attrs, examples):
+        "Choose the attribute with the highest information gain."
+        return argmax_random_tie(attrs,
+                                 lambda a: information_gain(a, examples))
+
+    def information_gain(attr, examples):
+        "Return the expected reduction in entropy from splitting by attr."
+        def I(examples):
+            return information_content([count(target, v, examples)
+                                        for v in ['Yes','No']])
+        N = float(len(examples))
+        remainder = sum((len(examples_i) / N) * I(examples_i) # = (% of examples with that value * I(all those examples)
+                        for (v, examples_i) in split_by(attr, examples))
+        return I(examples) - remainder
+
+    def split_by(attr, examples):
+        
+        "Return a list of (val, examples) pairs for each val of attr."
+        
+        yes_list = []
+        no_list = []
+        for x in examples:
+            if x[attr_map[attr].keys()[0]] == attr_map[attr].values()[0]:
+                yes_list.append(x)
+            else:
+                no_list.append(x)
+            
+        list = []
+        list.append(('Yes',yes_list))
+        list.append(('No',no_list))
+
+        return list
+    
+    return decision_tree_learning(dataset.examples, new_attrs, attr_map)
+
+def information_content(values):
+    "Number of bits to represent the probability distribution in values."
+    probabilities = normalize(removeall(0, values))
+    return sum(-p * log2(p) for p in probabilities)
+
 
 #______________________________________________________________________________
 
