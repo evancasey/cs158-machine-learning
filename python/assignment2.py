@@ -325,14 +325,35 @@ def _compose_results(avg_results_dict):
         plot_dict['bagged_training_avg'].append(v[5])
 
     return plot_dict
-    
+
+def _plot_results(num_rounds, results_dict):
+    # takes in list of num_rounds (x-coords), dict of results (y-coords and labels)
+    # makes a matplotlib line chart with legend
+
+    one_minus = lambda l: [1-x for x in l]
+
+    plot0, = plt.plot(num_rounds, one_minus(results_dict['normal_testing_avg']))
+    plot1, = plt.plot(num_rounds, one_minus(results_dict['boosted_testing_avg']))
+    plot2, = plt.plot(num_rounds, one_minus(results_dict['bagged_testing_avg']))
+    plot3, = plt.plot(num_rounds, one_minus(results_dict['normal_training_avg']))
+    plot4, = plt.plot(num_rounds, one_minus(results_dict['boosted_training_avg']))
+    plot5, = plt.plot(num_rounds, one_minus(results_dict['bagged_training_avg']))
+
+    labels = ['normal_testing_avg', 'boosted_testing_avg', 'bagged_testing_avg', 
+                'normal_training_avg', 'boosted_training_avg', 'bagged_training_avg']
+
+    plt.legend([plot0,plot1,plot2,plot3,plot4,plot5],labels)
+
+    plt.show()
+
+
 if __name__ == "__main__":
 
     # number of trials used to take results average
-    num_trials = 10
+    num_trials = 1
 
     # number of iterations for boosting/bagging algos
-    num_rounds = [1,2,3,5,10,15,20,25,30,40,50]
+    num_rounds = [1, 2]
 
     # stores the averaged results
     rest_nary_tree_avg_results = {}
@@ -400,10 +421,4 @@ if __name__ == "__main__":
     canc_binary_stump_plot_dict = _compose_results(canc_binary_stump_avg_results)
 
     # plot averages
-    X = num_rounds
-    for Y in canc_nary_tree_plot_dict.values():
-        one_minus = lambda l: [1-x for x in l]
-        plt.plot(X, one_minus(Y))
-    plt.show()
-
-    # some logic used to plot other graphs
+    _plot_results(num_rounds, canc_nary_tree_plot_dict)
