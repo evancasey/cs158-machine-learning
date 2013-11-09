@@ -10,18 +10,45 @@ import matplotlib.pyplot as plt
 
 def testNeuralNetLearner(data, rounds):
 
-		# change stuff
-		if data == "restaurant":
-		    attributeNames = "Alternate, Bar, Fri/Sat, Hungry, Patrons, Price, Raining, Reservation, Type, WaitEstimate, WillWait"
+		if data == "XOR":
 		    ds = DataSet(name='../data/restaurant', attrnames=attributeNames)
-		elif data == "cancer":
-		    attributeNames = "Class, age, menopause, tumor-size, inv-nodes, node-caps, deg-malig, breast, breast-quad, irradiat"
+		    num_input = 4
+		    num_output = 4
+		    num_hl = 1 # number of hidden layers
+		elif data == "Semion":
 		    ds = DataSet(name='../breast-cancer/breast-cancer', attrnames=attributeNames)
-		elif data == "new_bands":
-		    attributeNames = "timestamp, cylinder_number, customer, job_number, paper_type, ink_type, paper_mill_location, plating_tank, proof_cut, viscosity, caliper, ink_temperature, humifity, roughness, blade_pressure, varnish_pct, press_speed, ink_pct, band_type"
-		    ds = DataSet(name='../data/trimmed_bands', attrnames=attributeNames)
+		    num_input = 256
+		    num_output = 10
+		    num_hl = 1 # number of hidden layers
+		
+		 # transform the ds to matrix
+		 
+
+		 # create the learner
+		 
+		 
+		 # test the learner (cross validation)
+		 
+
+def createNeuralNetLearner(m):
+	 	# create a neural net learner
+
+
+	 	# create weights
+
+
+def _ds_to_matrix(dataset):
+		# return a numpy matrix
+	 
+		# FILL IN
+		
+		pass
+
 
 
 if __name__ == "__main__":
 
 		# some stuff
+		# 
+		# testNeuralNetLearner()
+
