@@ -27,7 +27,7 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
 	 # test the learner (cross validation)
 		 
 
-def createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_rate, momentum):
+def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
  	# create a neural net learner
 
  	# transform the ds to matrix
@@ -35,11 +35,31 @@ def createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_r
  	
 	mx = np.matrix(inputs)
 
- 	# create weights
- 	mw = np.random.random((256, 256))
- 	
+ 	# create input weights
+ 	mwi = np.random.random((256, 256))
 
- 	# call forward propogation
+ 	# create output weights
+ 	mwo = np.random.random((256, 256))
+
+ 	
+	# call forward propogation
+	ai = mx[0] * mwi
+
+	for i, activation in enumerate(ai):
+		ai[i] = sigmoid(activation)
+
+	nh = ai
+
+	ao = nh * mwo
+
+	for i, activation in enumerate(ao):
+		ao[i] = sigmoid(activation)
+
+	no = ao
+
+
+
+
  	
 
  	# call backward propogation
