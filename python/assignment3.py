@@ -10,19 +10,16 @@ import numpy as np
 
 def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
 
-	if data == "XOR":
-	    ds = DataSet(name='../data/XOR')
+	if data == "xor":
+	    ds = DataSet(name='../data/xor')
 	    num_input = 4
 	    num_output = 4
 	    num_hl = 1 # number of hidden layers
-	elif data == "Semeion":
+	elif data == "semeion":
 	    ds = DataSet(name='../data/semeion')
 	    num_input = 256
 	    num_output = 10
 	    num_hl = 1 # number of hidden layers
-	
-	 # transform the ds to matrix
-	 # m = _ds_to_matrix(ds)
 	 
 	 # # create the learner with the matrix
 	 # NNlearner = createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_rate, momentum)
@@ -33,7 +30,13 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
 def createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_rate, momentum):
  	# create a neural net learner
 
+ 	# transform the ds to matrix
+ 	inputs = np.array(ds.examples)
+ 	
+	mx = np.matrix(inputs)
+
  	# create weights
+ 	mw = np.random.random((256, 256))
  	
 
  	# call forward propogation
@@ -65,15 +68,9 @@ def _create_weights(m):
 	pass
 
 
-def _ds_to_matrix(dataset):
-		# return a numpy matrix
-	 ds = np.matrix(dataset.examples)
-	 return ds
-
-
 if __name__ == "__main__":
 
-	testNeuralNetLearner("Semeion", 1000,0.5,0.1)
+	testNeuralNetLearner("xor",1000,0.5,0.1)
 
 	# some stuff
 	# 
