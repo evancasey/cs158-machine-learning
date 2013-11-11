@@ -66,12 +66,8 @@ def _create_weights(m):
 
 def _ds_to_matrix(dataset):
 		# return a numpy matrix
-	 
-		# FILL IN
-		
-		pass
-
-
+	 ds = np.matrix(dataset.examples)
+	 return ds
 
 if __name__ == "__main__":
 
