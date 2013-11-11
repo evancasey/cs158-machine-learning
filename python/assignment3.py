@@ -43,6 +43,22 @@ def createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_r
 	 	
 
 	 	# update weights
+
+def sigmoid(a):
+	return 1/(1 + math.pow(math.e, -a))
+
+def forwardProp(N, w):
+	""" takes a list of node values and the associated weights"""
+	if len(N) != len(w):
+		return "error"
+	else:
+		a = 0
+		for i in range(len(N)):
+			a += N[i]*w[i]
+
+		nodeValue = sigmoid(a)
+
+		return nodeValue
 	
 
 def _create_weights(m):
