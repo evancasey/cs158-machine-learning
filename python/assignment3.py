@@ -5,6 +5,7 @@ import random
 import os
 import sys
 import numpy as np
+# import scipy as sp
 # import matplotlib.pyplot as plt
 
 
@@ -21,22 +22,24 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
 	    num_output = 10
 	    num_hl = 1 # number of hidden layers
 	 
-	 # # create the learner with the matrix
-	 # NNlearner = createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_rate, momentum)
-	 
+	# create the learner with the matrix
+	NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
+ 
 	 # test the learner (cross validation)
 		 
 
-def createNeuralNetLearner(m, num_input, num_output, num_hl, iterations, learn_rate, momentum):
+def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
  	# create a neural net learner
 
- 	# transform the ds to matrix
- 	inputs = np.array(ds.examples)
- 	
+ 	# transform the ds to matrix of inputs 	
+ 	obs = np.matrix(ds.examples)
+ 	inputs = np.delete(obs,len(ds.examples) - 2,1)
 	mx = np.matrix(inputs)
 
- 	# create weights
+ 	# create random weights
  	mw = np.random.random((256, 256))
+
+ 	pdb.set_trace()
  	
 
  	# call forward propogation
