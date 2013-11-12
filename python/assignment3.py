@@ -43,20 +43,8 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
  	mwo = np.random.random((256, 256))
  	
 	# call forward propogation
-	ai = mx[0] * mwi
-
-	for i, activation in enumerate(ai):
-		ai[i] = sigmoid(activation)
-
-	nh = ai
-
-	ao = nh * mwo
-
-	for i, activation in enumerate(ao):
-		ao[i] = sigmoid(activation)
-
-	no = ao
-
+	for row in mx:
+		forwardProp(mx,mwi,mwo)
 
 
 
@@ -66,23 +54,46 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
  	
 
  	# update weights
- 	# 
+ 	
+
+def forwardProp(mx, mwi, mwo):
+	# takes a list of node values and the associated weights
+	# returns a matrix of updated input and output activations 	
+
+	
+	# 1 dimensional input activation matrix
+	ai = row * mwi
+
+	# initialize matrix to store hidden node values
+	mnh = np.matrix(ai)
+
+	# loop through all of ai and update with sigmoid
+	for i, activation in enumerate(ai):
+		mnh[i] = sigmoid(activation)
+
+	# 1 dimensional output activation matrix
+	ao = mnh * mwo
+
+	# initialize matrix to store hidden node values
+	mno = np.matrix(ai)
+
+	for i, activation in enumerate(ao):
+		mno[i] = sigmoid(activation)
+
+	return ai, mnh, mno
+
+	
+
+
+
+
 
 def sigmoid(a):
+	# takes in a value in the activation matrix
+	# returns the result of the sigmoid function performed on it
+	
 	return 1/(1 + math.pow(math.e, -a))
 
-def forwardProp(N, w):
-	""" takes a list of node values and the associated weights"""
-	if len(N) != len(w):
-		return "error"
-	else:
-		a = 0
-		for i in range(len(N)):
-			a += N[i]*w[i]
-
-		nodeValue = sigmoid(a)
-
-		return nodeValue
 
 def _create_weights(m):
 	pass
