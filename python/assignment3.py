@@ -40,7 +40,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
  	mwi = np.random.random((256, 256))
 
  	# create output weights
- 	mwo = np.random.random((256, 256))
+ 	mwo = np.random.random((256, 10))
  	
 	# call forward propogation
 	for row in mx:
