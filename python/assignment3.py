@@ -34,7 +34,9 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
  	# transform the ds to matrix of inputs 	
  	obs = np.matrix(ds.examples)
  	inputs = np.delete(obs,len(ds.examples) - 2,1)
-	mx = np.matrix(inputs)
+ 	target = obs[:,num_input]
+	mxi = np.matrix(inputs)
+	mxt = np.matrix(target)
 
  	# create input weights
  	mwi = np.random.random((num_input + 1, num_input + 1))
@@ -43,15 +45,21 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
  	mwo = np.random.random((num_input + 1, num_output))
  	
 	# call forward propogation
-	for row in mx:
+	for i in range(len(mxi)):
+
 		# add in bias column of 1's
-		row = np.append(1,row)
-		forwardProp(np.matrix(row),np.matrix(mwi),np.matrix(mwo))
+		input_row_with_bias = np.append(1,mxi[i])	
 
- 	# call backward propogation
- 	
+		# call forward prop
+		ai, mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
 
- 	# update weights
+		# grab target values
+		target_value = mxt[i]
+
+		# call backward prop
+		backwardProp(np.matrix(target_value), mno)
+
+ 		# update weights
  	
 
 def forwardProp(row, mwi, mwo):
@@ -62,21 +70,21 @@ def forwardProp(row, mwi, mwo):
 	ai = row * mwi
 
 	# initialize matrix to store hidden node values
-	mnh = ai
+	mnh = np.matrix(ai)
 
 	# loop through all of ai and update with sigmoid
-	for i in range(len(ai)):		
-		mnh[i] = sigmoid(ai[0,i])
+	for i in range(ai.shape[1]):	
+		mnh[0,i] = sigmoid(ai[0,i])
 
 	# 1 dimensional output activation matrix
 	ao = mnh * mwo
 
 	# initialize matrix to store output node values
-	mno = ai
+	mno = np.matrix(ao)
 
 	# loop through all of ao and update with sigmoid
-	for i in range(len(ao[0])):	
-		mno[i] = sigmoid(ao[0,i])
+	for i in range(ao.shape[1]):	
+		mno[0,i] = sigmoid(ao[0,i])
 
 	return ai, mnh, mno
 
