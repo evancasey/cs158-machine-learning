@@ -80,6 +80,18 @@ def forwardProp(row, mwi, mwo):
 
 	return ai, mnh, mno
 
+def backwardProp(mno,mnh):
+	# for i in range(len(mno))
+		# error = desired[i] - mno[i]
+		# change in node = error * mno[i] * (1 - mno[i])
+		# output_deltas[i] = change in node
+
+	# for i in range(len(mnh))
+		# sum = 0
+		# for j in range(len(output_deltas))
+			# sum += (mwo[i,j]*output_deltas[j])
+		# change in node = mnh[i] * (1 - mnh[i]) * sum
+
 
 def sigmoid(a):
 	# takes in a value in the activation matrix
