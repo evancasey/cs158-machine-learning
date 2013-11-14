@@ -59,7 +59,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
         output_deltas, hidden_deltas = backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
 
         # update weights
-        updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh)
+        mwi, mwo = updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno)
     
 
 def forwardProp(row, mwi, mwo):
@@ -106,8 +106,6 @@ def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
     # instantiate array for hidden deltas
     hidden_deltas = [0.0] * num_hidden
 
-    pdb.set_trace()
-
     # calculating the hidden layer deltas
     for i in range(mnh.shape[1]):
         weighted_output_sum = 0
@@ -119,11 +117,21 @@ def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
     return output_deltas, hidden_deltas
 
-def updateWeights(learn_rate):
+def updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno):
+	# return updated input and output weights
+	
+	# update input weights
+	for i in range(len(input_row_with_bias)):		
+		for j in range(mnh.shape[1]):
+			mwi[i,j] = mwi[i,j] + (learn_rate * input_row_with_bias[i] * hidden_deltas[j])
 
-  # update input weights
-  
-  pass
+	# update output weights
+	for i in range(len(mnh)):		
+		for j in range(mno.shape[1]):
+			mwo[i,j] = mwo[i,j] + (learn_rate * mnh[0,i] * output_deltas[j])
+
+	return mwi, mwo
+
 
 def sigmoid(a):
     # takes in a value in the activation matrix
