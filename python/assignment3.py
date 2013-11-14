@@ -11,112 +11,126 @@ import numpy as np
 
 def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
 
-	if data == "xor":
-	    ds = DataSet(name='../data/xor')
-	    num_input = 2
-	    num_output = 2
-	    num_hl = 1 # number of hidden layers
-	elif data == "semeion":
-	    ds = DataSet(name='../data/semeion')
-	    num_input = 256
-	    num_output = 10
-	    num_hl = 1 # number of hidden layers
-	 
-	# create the learner with the matrix
-	NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
+    if data == "xor":
+        ds = DataSet(name='../data/xor')
+        num_input = 2
+        num_output = 2
+        num_hl = 1 # number of hidden layers
+    elif data == "semeion":
+        ds = DataSet(name='../data/semeion')
+        num_input = 256
+        num_output = 10
+        num_hl = 1 # number of hidden layers
+     
+    # create the learner with the matrix
+    NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
  
-	# test the learner (cross validation)
-		 
+    # test the learner (cross validation)
+         
 
 def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
- 	# create a neural net learner
+    # create a neural net learner
 
- 	# transform the ds to matrix of inputs 	
- 	obs = np.matrix(ds.examples)
- 	inputs = np.delete(obs,len(ds.examples) - 2,1)
- 	target = obs[:,num_input]
-	mxi = np.matrix(inputs)
-	mxt = np.matrix(target)
+    # transform the ds to matrix of inputs  
+    obs = np.matrix(ds.examples)
+    inputs = np.delete(obs,len(ds.examples) - 2,1)
+    target = obs[:,num_input]
+    mxi = np.matrix(inputs)
+    mxt = np.matrix(target)
 
- 	# create input weights
- 	mwi = np.random.random((num_input + 1, num_input + 1))
+    # create input weights
+    mwi = np.random.random((num_input + 1, num_input + 1))
 
- 	# create output weights
- 	mwo = np.random.random((num_input + 1, num_output))
- 	
-	# call forward propogation
-	for i in range(len(mxi)):
+    # create output weights
+    mwo = np.random.random((num_input + 1, num_output))
+    
+    # call forward propogation
+    for i in range(len(mxi)):
 
-		# add in bias column of 1's
-		input_row_with_bias = np.append(1,mxi[i])	
+        # add in bias column of 1's
+        input_row_with_bias = np.append(1,mxi[i])   
 
-		# call forward prop
-		ai, mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
+        # call forward prop
+        ai, mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
 
-		# grab target values
-		target_value = mxt[i]
+        # grab target values
+        target_value = mxt[i]
 
-		# call backward prop
-		backwardProp(np.matrix(target_value), mno)
+        # call backward prop
+        backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
 
- 		# update weights
- 	
+        # update weights
+    
 
 def forwardProp(row, mwi, mwo):
-	# takes a list of node values and the associated weights
-	# returns a matrix of updated input and output activations 	
+    # takes a list of node values and the associated weights
+    # returns a matrix of updated input and output activations  
 
-	# 1 dimensional input activation matrix
-	ai = row * mwi
+    # 1 dimensional input activation matrix
+    ai = row * mwi
 
-	# initialize matrix to store hidden node values
-	mnh = np.matrix(ai)
+    # initialize matrix to store hidden node values
+    mnh = np.matrix(ai)
 
-	# loop through all of ai and update with sigmoid
-	for i in range(ai.shape[1]):	
-		mnh[0,i] = sigmoid(ai[0,i])
+    # loop through all of ai and update with sigmoid
+    for i in range(ai.shape[1]):    
+        mnh[0,i] = sigmoid(ai[0,i])
 
-	# 1 dimensional output activation matrix
-	ao = mnh * mwo
+    # 1 dimensional output activation matrix
+    ao = mnh * mwo
 
-	# initialize matrix to store output node values
-	mno = np.matrix(ao)
+    # initialize matrix to store output node values
+    mno = np.matrix(ao)
 
-	# loop through all of ao and update with sigmoid
-	for i in range(ao.shape[1]):	
-		mno[0,i] = sigmoid(ao[0,i])
+    # loop through all of ao and update with sigmoid
+    for i in range(ao.shape[1]):    
+        mno[0,i] = sigmoid(ao[0,i])
 
-	return ai, mnh, mno
+    return ai, mnh, mno
 
-def backwardProp(mno,mnh):
-	# for i in range(len(mno))
-		# error = desired[i] - mno[i]
-		# change in node = error * mno[i] * (1 - mno[i])
-		# output_deltas[i] = change in node
+def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
-	# for i in range(len(mnh))
-		# sum = 0
-		# for j in range(len(output_deltas))
-			# sum += (mwo[i,j]*output_deltas[j])
-		# change in node = mnh[i] * (1 - mnh[i]) * sum
+    desired = [0]*num_output
+    desired[target] = 1
 
+    output_deltas = [0] * num_output
+
+    # calculating the output deltas
+    for i in range(len(mno)):
+        error = desired[i] - mno[0,i]
+        delta = error * mno[0,i] * (1 - mno[0,i])
+        output_deltas[i] = delta
+
+    hidden_deltas = [0] * num_output
+
+    # calculating the hidden layer deltas
+    for i in range(len(mnh)):
+        weighted_output_sum = 0
+        # sum(weight to output node j * delta of output node j)
+        for j in range(len(output_deltas)):
+            weighted_output_sum += (mwo[i,j]*output_deltas[j])
+
+        delta = mnh[0,i] * (1 - mnh[0,i]) * weighted_output_sum
+        hidden_deltas[i] =  delta
+
+    return output_deltas, hidden_deltas
 
 def sigmoid(a):
-	# takes in a value in the activation matrix
-	# returns the result of the sigmoid function performed on it
+    # takes in a value in the activation matrix
+    # returns the result of the sigmoid function performed on it
 
-	return 1/(1 + math.pow(math.e, -a))
+    return 1/(1 + math.pow(math.e, -a))
 
 
 def _create_weights(m):
-	pass
+    pass
 
 
 if __name__ == "__main__":
 
-	testNeuralNetLearner("xor",1000,0.5,0.1)
+    testNeuralNetLearner("xor",1000,0.5,0.1)
 
-	# some stuff
-	# 
-	# testNeuralNetLearner()
+    # some stuff
+    # 
+    # testNeuralNetLearner()
 
