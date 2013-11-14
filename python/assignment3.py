@@ -44,7 +44,6 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     # create output weights
     mwo = np.random.random((num_input + 1, num_output))
     
-    # call forward propogation
     for i in range(len(mxi)):
 
         # add in bias column of 1's
@@ -57,10 +56,10 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
         target_value = mxt[i]
 
         # call backward prop
-        backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
+        output_deltas, hidden_deltas = backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
 
         # update weights
-        updateWeights(learn_rate)
+        updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh)
     
 
 def forwardProp(row, mwi, mwo):
@@ -91,28 +90,32 @@ def forwardProp(row, mwi, mwo):
 
 def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
+	# create array of all 0's except 1 for target value
     desired = [0] * num_output
     desired[target] = 1
 
-    output_deltas = [0] * num_output
+    # instantiate array for output deltas
+    output_deltas = [0.0] * num_output
 
     # calculating the output deltas
-    for i in range(len(mno)):
+    for i in range(mno.shape[1]):
         error = desired[i] - mno[0,i]
         delta = error * mno[0,i] * (1 - mno[0,i])
         output_deltas[i] = delta
 
-    hidden_deltas = [0] * num_hidden
+    # instantiate array for hidden deltas
+    hidden_deltas = [0.0] * num_hidden
+
+    pdb.set_trace()
 
     # calculating the hidden layer deltas
-    for i in range(len(mnh)):
+    for i in range(mnh.shape[1]):
         weighted_output_sum = 0
         # sum(weight to output node j * delta of output node j)
         for j in range(len(output_deltas)):
             weighted_output_sum += (mwo[i,j]*output_deltas[j])
 
-        delta = mnh[0,i] * (1 - mnh[0,i]) * weighted_output_sum
-        hidden_deltas[i] =  delta
+        hidden_deltas[i] = mnh[0,i] * (1 - mnh[0,i]) * weighted_output_sum
 
     return output_deltas, hidden_deltas
 
@@ -129,15 +132,9 @@ def sigmoid(a):
     return 1/(1 + math.pow(math.e, -a))
 
 
-def _create_weights(m):
-    pass
-
-
 if __name__ == "__main__":
 
     testNeuralNetLearner("xor",1000,0.5,0.1)
 
-    # some stuff
-    # 
-    # testNeuralNetLearner()
+    # do some stuff with the results
 
