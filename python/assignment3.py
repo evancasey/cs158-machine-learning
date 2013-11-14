@@ -60,6 +60,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
         backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
 
         # update weights
+        updateWeights(learn_rate)
     
 
 def forwardProp(row, mwi, mwo):
@@ -90,7 +91,7 @@ def forwardProp(row, mwi, mwo):
 
 def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
-    desired = [0]*num_output
+    desired = [0] * num_output
     desired[target] = 1
 
     output_deltas = [0] * num_output
@@ -101,7 +102,7 @@ def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
         delta = error * mno[0,i] * (1 - mno[0,i])
         output_deltas[i] = delta
 
-    hidden_deltas = [0] * num_output
+    hidden_deltas = [0] * num_hidden
 
     # calculating the hidden layer deltas
     for i in range(len(mnh)):
@@ -114,6 +115,12 @@ def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
         hidden_deltas[i] =  delta
 
     return output_deltas, hidden_deltas
+
+def updateWeights(learn_rate):
+
+  # update input weights
+  
+  pass
 
 def sigmoid(a):
     # takes in a value in the activation matrix
