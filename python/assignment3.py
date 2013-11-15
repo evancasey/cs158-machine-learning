@@ -9,7 +9,7 @@ import numpy as np
 # import matplotlib.pyplot as plt
 
 
-def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
+def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
 
     if data == "xor":
         ds = DataSet(name='../data/xor')
@@ -21,11 +21,19 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.5, momentum=0.1):
         num_input = 256
         num_output = 10
         num_hl = 1 # number of hidden layers
-     
-    # create the learner with the matrix
-    NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
  
-    # test the learner (cross validation)
+    for i in range(20):
+
+        # create the learner with the matrix
+        NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
+     
+        # create a test observation
+        obs = np.matrix(ds.examples)[0]
+
+        # test the learner (cross validation)
+        classification = NNlearner(obs)
+
+        print classification
          
 
 def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
@@ -43,41 +51,60 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
 
     # create output weights
     mwo = np.random.random((num_input + 1, num_output))
+
+    for i in range(iterations):             
     
-    for i in range(len(mxi)):
+        for j in range(len(mxi)):            
 
-        # add in bias column of 1's
-        input_row_with_bias = np.append(1,mxi[i])   
+            # add in bias column of 1's
+            input_row_with_bias = np.append(1.0,mxi[j])   
 
-        # call forward prop
-        mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
+            # grab target values
+            target_value = mxt[j]
 
-        # grab target values
-        target_value = mxt[i]
+            # call forward prop
+            mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
 
-        # call backward prop
-        output_deltas, hidden_deltas = backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
+            # call backward prop
+            output_deltas, hidden_deltas = backwardProp(target_value, mno, mnh, mwo, num_output, num_input + 1)
 
-        # update weights
-        mwi, mwo = updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno)
+            # update weights
+            mwi, mwo = updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno)
+
+            # print "mwi: ", mwi, "\n"
+
+
+    def predict(row):
+        ai, mnh, mno = forwardProp(row, mwi, mwo)
+        return mno
+
+    return predict
     
 
 def forwardProp(row, mwi, mwo):
     # takes a list of node values and the associated weights
     # returns a matrix of updated input and output activations  
 
+    # print "ROW: ", row, "\n"
+
     # 1 dimensional input activation matrix
     ai = row * mwi
 
+    # print "AI: ", ai, "\n"
+
     # initialize matrix to store hidden node values
-    mnh = np.matrix(ai)
+    mnh = np.matrix([1.0] * ai.shape[1])
 
     # loop through all of ai and update with sigmoid
-    for i in range(ai.shape[1]):    
+    for i in range(1, ai.shape[1]):            
         mnh[0,i] = sigmoid(ai[0,i])
+
+    # print "MNH: ", mnh, "\n"
 
     # 1 dimensional output activation matrix
     ao = mnh * mwo
+
+    # print "AO: ", ao, "\n"
 
     # initialize matrix to store output node values
     mno = np.matrix(ao)
@@ -86,12 +113,18 @@ def forwardProp(row, mwi, mwo):
     for i in range(ao.shape[1]):    
         mno[0,i] = sigmoid(ao[0,i])
 
+    # print "MNO: ", mno, "\n"
+
     return mnh, mno
+
+    
+
+
 
 def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
-	# create array of all 0's except 1 for target value
-    desired = [0] * num_output
+    # create array of all 0's except 1 for target value
+    desired = [0.0] * num_output
     desired[target] = 1
 
     # instantiate array for output deltas
@@ -118,19 +151,19 @@ def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
     return output_deltas, hidden_deltas
 
 def updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno):
-	# return updated input and output weights
-	
-	# update input weights
-	for i in range(len(input_row_with_bias)):		
-		for j in range(mnh.shape[1]):
-			mwi[i,j] = mwi[i,j] + (learn_rate * input_row_with_bias[i] * hidden_deltas[j])
+    # return updated input and output weights
+    
+    # update input weights
+    for i in range(len(input_row_with_bias)):       
+        for j in range(mnh.shape[1]):
+            mwi[i,j] = mwi[i,j] + (learn_rate * input_row_with_bias[i] * hidden_deltas[j])
 
-	# update output weights
-	for i in range(len(mnh)):		
-		for j in range(mno.shape[1]):
-			mwo[i,j] = mwo[i,j] + (learn_rate * mnh[0,i] * output_deltas[j])
+    # update output weights
+    for i in range(len(mnh)):       
+        for j in range(mno.shape[1]):
+            mwo[i,j] = mwo[i,j] + (learn_rate * mnh[0,i] * output_deltas[j])
 
-	return mwi, mwo
+    return mwi, mwo
 
 
 def sigmoid(a):
@@ -142,7 +175,7 @@ def sigmoid(a):
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",1000,0.5,0.1)
+    testNeuralNetLearner("xor",10000,0.1,0.1)
 
     # do some stuff with the results
 
