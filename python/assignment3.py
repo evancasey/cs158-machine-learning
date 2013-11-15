@@ -50,7 +50,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
         input_row_with_bias = np.append(1,mxi[i])   
 
         # call forward prop
-        ai, mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
+        mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
 
         # grab target values
         target_value = mxt[i]
@@ -86,7 +86,7 @@ def forwardProp(row, mwi, mwo):
     for i in range(ao.shape[1]):    
         mno[0,i] = sigmoid(ao[0,i])
 
-    return ai, mnh, mno
+    return mnh, mno
 
 def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
