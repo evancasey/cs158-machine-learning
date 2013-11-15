@@ -21,17 +21,19 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         num_input = 256
         num_output = 10
         num_hl = 1 # number of hidden layers
-     
-    # create the learner with the matrix
-    NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
  
-    # create a test observation
-    obs = np.matrix(ds.examples)[0]
+    for i in range(20):
 
-    # test the learner (cross validation)
-    classification = NNlearner(obs)
+        # create the learner with the matrix
+        NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
+     
+        # create a test observation
+        obs = np.matrix(ds.examples)[0]
 
-    print classification
+        # test the learner (cross validation)
+        classification = NNlearner(obs)
+
+        print classification
          
 
 def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
@@ -55,7 +57,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
         for j in range(len(mxi)):            
 
             # add in bias column of 1's
-            input_row_with_bias = np.append(1,mxi[j])   
+            input_row_with_bias = np.append(1.0,mxi[j])   
 
             # call forward prop
             ai, mnh, mno = forwardProp(np.matrix(input_row_with_bias),np.matrix(mwi),np.matrix(mwo))
@@ -83,18 +85,26 @@ def forwardProp(row, mwi, mwo):
     # takes a list of node values and the associated weights
     # returns a matrix of updated input and output activations  
 
+    # print "ROW: ", row, "\n"
+
     # 1 dimensional input activation matrix
     ai = row * mwi
 
+    # print "AI: ", ai, "\n"
+
     # initialize matrix to store hidden node values
-    mnh = np.matrix(ai)
+    mnh = np.matrix([1.0] * ai.shape[1])
 
     # loop through all of ai and update with sigmoid
-    for i in range(ai.shape[1]):    
+    for i in range(1, ai.shape[1]):            
         mnh[0,i] = sigmoid(ai[0,i])
+
+    # print "MNH: ", mnh, "\n"
 
     # 1 dimensional output activation matrix
     ao = mnh * mwo
+
+    # print "AO: ", ao, "\n"
 
     # initialize matrix to store output node values
     mno = np.matrix(ao)
@@ -103,12 +113,14 @@ def forwardProp(row, mwi, mwo):
     for i in range(ao.shape[1]):    
         mno[0,i] = sigmoid(ao[0,i])
 
+    # print "MNO: ", mno, "\n"
+
     return ai, mnh, mno
 
 def backwardProp(target, mno, mnh, mwo, num_output, num_hidden):
 
     # create array of all 0's except 1 for target value
-    desired = [0] * num_output
+    desired = [0.0] * num_output
     desired[target] = 1
 
     # instantiate array for output deltas
