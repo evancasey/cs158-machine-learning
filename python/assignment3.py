@@ -20,18 +20,18 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         num_output = 10
         num_hl = 1 # number of hidden layers
 
-    for x in range(20):
+    for x in range(1):
 
         # create the learner with the matrix
         NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
      
         # create a test observation
-        obs = np.matrix(ds.examples)[1]
+        obs = np.matrix(ds.examples)[0]
 
         # test the learner (cross validation)
         classification = NNlearner(obs)
 
-        print classification
+        print "classification: ", classification
          
 
 def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
@@ -43,7 +43,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     mx_target = obs[:,num_input]
 
     # create input weights
-    mw_input_hidden= np.matrix(np.random.random((num_input + 1, num_input)))
+    mw_input_hidden = np.matrix(np.random.random((num_input + 1, num_input)))
 
     # create output weights
     mw_hidden_output = np.matrix(np.random.random((num_input + 1, num_output)))
@@ -52,7 +52,10 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     for i in range(iterations):             
     
         # go through each observation
-        for j in range(len(mx_inputs)):            
+        for j in range(len(mx_inputs)):    
+
+            # print "mw_input_hidden: ", "\n", mw_input_hidden 
+            # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"     
 
             # add in bias column of 1's
             input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
@@ -64,13 +67,16 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
             hidden_deltas, output_deltas = backwardProp(mx_target[j,0], mn_hidden, mn_output, mw_hidden_output, num_input, num_output)
 
             # update weights
-            mwi, mwo = updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno)
+            mw_input_hidden, mw_hidden_output = updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output)
 
-            # print "mwi: ", mwi, "\n"
+            # print "mw_input_hidden: ", "\n", mw_input_hidden 
+            # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
 
-    def predict(row):
-        ai, mnh, mno = forwardProp(row, mwi, mwo)
-        return mno
+    def predict(obs):
+        mn_hidden, mn_output = forwardProp(obs, mw_input_hidden, mw_hidden_output)
+        # print "mw_input_hidden: ", "\n", mw_input_hidden 
+        # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
+        return mn_output
 
     return predict
     
@@ -135,21 +141,20 @@ def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_
 
     return hidden_deltas, output_deltas
 
-def updateWeights(learn_rate, mwi, mwo, hidden_deltas, output_deltas, input_row_with_bias, mnh, mno):
+def updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output):
     # return updated input and output weights
 
-    # update input weights
+    # update hidden_output weights
+    for i in range(len(mn_hidden)):       
+        for j in range(mn_output.shape[1]):
+            mw_hidden_output[i,j] = mw_hidden_output[i,j] + (learn_rate * mn_hidden[0,i] * output_deltas[j])    
+
+    # update input_hidden weights
     for i in range(len(input_row_with_bias)):       
-        for j in range(mnh.shape[1] - 1):
-            # pdb.set_trace()
-            mwi[i,j] = mwi[i,j] + (learn_rate * input_row_with_bias[i] * hidden_deltas[j])
+        for j in range(mn_hidden.shape[1] - 1):            
+            mw_input_hidden[i,j] = mw_input_hidden[i,j] + (learn_rate * input_row_with_bias[0,i] * hidden_deltas[j])
 
-    # update output weights
-    for i in range(len(mnh)):       
-        for j in range(mno.shape[1]):
-            mwo[i,j] = mwo[i,j] + (learn_rate * mnh[0,i] * output_deltas[j])
-
-    return mwi, mwo
+    return mw_input_hidden, mw_hidden_output
 
 
 def sigmoid(a):
@@ -164,18 +169,15 @@ def create_desired(target, num_output):
 
     desired = [0.0] * num_output
 
-    if num_output == 1:
-        # xor
-        desired[0] = target
-    else:
-        desired[target] = 1
+    if num_output == 1: desired[0] = target # xor
+    else: desired[target] = 1.0
 
     return desired
 
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",10000,0.1,0.1)
+    testNeuralNetLearner("xor",50000,0.1,0.1)
 
     # do some stuff with the results
 
