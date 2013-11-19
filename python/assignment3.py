@@ -28,6 +28,8 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         # create a test observation
         obs = np.matrix(ds.examples)[0]
 
+        print obs
+
         # test the learner (cross validation)
         classification = NNlearner(obs)
 
@@ -48,14 +50,18 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     # create output weights
     mw_hidden_output = np.matrix((np.random.random((num_input + 1, num_output)) * 2) - 1)
 
+    print "random mw_input_hidden: ", "\n", mw_input_hidden 
+    print "random mw_hidden_output: ", "\n", mw_hidden_output, "\n"  
+
     # repeat for num iterations
     for i in range(iterations):             
     
-        # go through each observation
-        for j in range(len(mx_inputs)):    
+        print "----"     
 
-            # print "mw_input_hidden: ", "\n", mw_input_hidden 
-            # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"     
+        pdb.set_trace()
+
+        # go through each observation
+        for j in range(len(mx_inputs)):              
 
             # add in bias column of 1's
             input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
@@ -63,7 +69,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
             # call forward prop
             mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
 
-            print mn_output     
+            print "mn_output: ", "\n", mn_output, "\n"    
 
             # call backward prop
             hidden_deltas, output_deltas = backwardProp(mx_target[j,0], mn_hidden, mn_output, mw_hidden_output, num_input, num_output)
@@ -71,8 +77,8 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
             # update weights
             mw_input_hidden, mw_hidden_output = updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output)
 
-            # print "mw_input_hidden: ", "\n", mw_input_hidden 
-            # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
+            print "mw_input_hidden: ", "\n", mw_input_hidden 
+            print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
 
     def predict(obs):
         mn_hidden, mn_output = forwardProp(obs, mw_input_hidden, mw_hidden_output)
@@ -91,11 +97,11 @@ def forwardProp(row, mw_input_hidden, mw_hidden_output):
     a_hidden = row * mw_input_hidden
 
     # initialize matrix to store hidden node values
-    mn_hidden = np.matrix([1.0] * a_hidden.shape[1])    
+    mn_hidden = np.matrix([1.0] * a_hidden.shape[1])       
 
     # loop through all of hidden activations and update with sigmoid
     for i in range(a_hidden.shape[1]):            
-        mn_hidden[0,i] = sigmoid(a_hidden[0,i])
+        mn_hidden[0,i] = sigmoid(a_hidden[0,i])    
 
     # set bias node back to 1.0
     mn_hidden[0,0] = 1.0   
@@ -142,17 +148,24 @@ def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_
     return hidden_deltas, output_deltas
 
 def updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output):
-    # return updated input and output weights
+    # return updated input and output weights 
 
     # update hidden_output weights
-    for i in range(len(mn_hidden)):       
+    for i in range(mn_hidden.shape[1]):       
         for j in range(mn_output.shape[1]):
             mw_hidden_output[i,j] = mw_hidden_output[i,j] + (learn_rate * mn_hidden[0,i] * output_deltas[j])    
 
+
+    # pdb.set_trace()
+
     # update input_hidden weights
-    for i in range(len(input_row_with_bias)):       
-        for j in range(mn_hidden.shape[1]):            
+    for i in range(input_row_with_bias.shape[1]):       
+        for j in range(mn_hidden.shape[1]):       
+            # pdb.set_trace()     
             mw_input_hidden[i,j] = mw_input_hidden[i,j] + (learn_rate * input_row_with_bias[0,i] * hidden_deltas[j])
+
+
+    # pdb.set_trace()
 
     return mw_input_hidden, mw_hidden_output
 
@@ -177,7 +190,7 @@ def create_desired(target, num_output):
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",10000,0.1,0.1)
+    testNeuralNetLearner("xor",2,0.1,0.1)
 
     # do some stuff with the results
 
