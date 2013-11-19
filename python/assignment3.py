@@ -20,7 +20,7 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         num_output = 1
         num_hl = 1 # number of hidden layers
     elif data == "xorm0":
-        ds = DataSet(name='../data/xorm')
+        ds = DataSet(name='../data/xorm0')
         num_input = 2
         num_output = 1
         num_hl = 1 # number of hidden layers
@@ -68,7 +68,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     
         print "----"     
 
-        pdb.set_trace()
+        # pdb.set_trace()
 
         # go through each observation
         for j in range(len(mx_inputs)):              
@@ -200,7 +200,7 @@ def create_desired(target, num_output):
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",2,0.1,0.1)
+    testNeuralNetLearner("xor",5,0.1,0.1)
 
     # do some stuff with the results
 
