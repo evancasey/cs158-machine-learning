@@ -110,6 +110,7 @@ def forwardProp(row, mw_input_hidden, mw_hidden_output):
 
     return mn_hidden, mn_output
 
+
 def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_output):    
 
     # create array to represent desired outcome
