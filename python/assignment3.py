@@ -43,10 +43,10 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
     mx_target = obs[:,num_input]
 
     # create input weights
-    mw_input_hidden = np.matrix(np.random.random((num_input + 1, num_input)))
+    mw_input_hidden = np.matrix((np.random.random((num_input + 1, num_input + 1)) * 2) - 1)
 
     # create output weights
-    mw_hidden_output = np.matrix(np.random.random((num_input + 1, num_output)))
+    mw_hidden_output = np.matrix((np.random.random((num_input + 1, num_output)) * 2) - 1)
 
     # repeat for num iterations
     for i in range(iterations):             
@@ -61,7 +61,9 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
             input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
 
             # call forward prop
-            mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)            
+            mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
+
+            print mn_output     
 
             # call backward prop
             hidden_deltas, output_deltas = backwardProp(mx_target[j,0], mn_hidden, mn_output, mw_hidden_output, num_input, num_output)
@@ -95,8 +97,8 @@ def forwardProp(row, mw_input_hidden, mw_hidden_output):
     for i in range(a_hidden.shape[1]):            
         mn_hidden[0,i] = sigmoid(a_hidden[0,i])
 
-    # add on bias node to hidden nodes
-    mn_hidden = np.matrix(np.append(1.0,mn_hidden[0]))    
+    # set bias node back to 1.0
+    mn_hidden[0,0] = 1.0   
 
     # 1 dimensional output activation matrix
     a_output = mn_hidden * mw_hidden_output
@@ -106,12 +108,12 @@ def forwardProp(row, mw_input_hidden, mw_hidden_output):
 
     # loop through all of output activations and update with sigmoid
     for i in range(a_output.shape[1]):    
-        mn_output[0,i] = sigmoid(a_output[0,i]) 
+        mn_output[0,i] = sigmoid(a_output[0,i])     
 
     return mn_hidden, mn_output
 
 
-def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_output):    
+def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_output):       
 
     # create array to represent desired outcome
     desired = create_desired(target, num_output)
@@ -137,9 +139,6 @@ def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_
 
         hidden_deltas[i] = mn_hidden[0,i] * (1 - mn_hidden[0,i]) * weighted_output_sum 
 
-    # take out the delta for the bias node
-    hidden_deltas = hidden_deltas[1:]
-
     return hidden_deltas, output_deltas
 
 def updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output):
@@ -152,7 +151,7 @@ def updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, 
 
     # update input_hidden weights
     for i in range(len(input_row_with_bias)):       
-        for j in range(mn_hidden.shape[1] - 1):            
+        for j in range(mn_hidden.shape[1]):            
             mw_input_hidden[i,j] = mw_input_hidden[i,j] + (learn_rate * input_row_with_bias[0,i] * hidden_deltas[j])
 
     return mw_input_hidden, mw_hidden_output
@@ -162,7 +161,7 @@ def sigmoid(a):
     # takes in a value in the activation matrix
     # returns the result of the sigmoid function performed on it
 
-    return 1/(1 + math.pow(math.e, -a))
+    return 1/(1 + math.exp(-a))
 
 def create_desired(target, num_output):
     # creates an array of binary values to represent 
@@ -178,7 +177,7 @@ def create_desired(target, num_output):
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",50000,0.1,0.1)
+    testNeuralNetLearner("xor",10000,0.1,0.1)
 
     # do some stuff with the results
 
