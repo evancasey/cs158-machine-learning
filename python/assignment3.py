@@ -14,6 +14,16 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         num_input = 2
         num_output = 1
         num_hl = 1 # number of hidden layers
+    elif data == "xorm":
+        ds = DataSet(name='../data/xorm')
+        num_input = 2
+        num_output = 1
+        num_hl = 1 # number of hidden layers
+    elif data == "xorm0":
+        ds = DataSet(name='../data/xorm')
+        num_input = 2
+        num_output = 1
+        num_hl = 1 # number of hidden layers
     elif data == "semeion":
         ds = DataSet(name='../data/semeion')
         num_input = 256
@@ -58,7 +68,7 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
             # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"     
 
             # add in bias column of 1's
-            input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
+            input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))           
 
             # call forward prop
             mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
