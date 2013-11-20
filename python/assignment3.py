@@ -12,25 +12,23 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
     if data == "xor":
         ds = DataSet(name='../data/xor')
         num_input = 2
-        num_output = 1
+        num_output = 2
         num_hl = 1 # number of hidden layers
     elif data == "xorm":
         ds = DataSet(name='../data/xorm')
         num_input = 2
-        num_output = 1
+        num_output = 2
         num_hl = 1 # number of hidden layers
     elif data == "xorm0":
         ds = DataSet(name='../data/xorm0')
         num_input = 2
-        num_output = 1
+        num_output = 2
         num_hl = 1 # number of hidden layers
     elif data == "semeion":
         ds = DataSet(name='../data/semeion')
         num_input = 256
         num_output = 10
         num_hl = 1 # number of hidden layers
-
-    # for x in range(20):
 
     # create the learner with the matrix
     NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
@@ -40,69 +38,52 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
  
     for o in obs:
 
-        print o
+        # the observation we are classifying
+        print o 
 
         # test the learner (cross validation)
         classification = NNlearner(o)
 
+        # the Neural Net's prediction
         print "classification: ", classification
-         
+     
 
 def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum):
     # create a neural net learner
 
     # transform the ds to matrix of inputs  
-    obs = np.matrix(ds.examples)
-    mx_inputs = np.matrix(np.delete(obs,len(ds.examples) - 2,1))
+    obs = np.matrix(ds.examples) 
+    mx_inputs = np.matrix(np.delete(obs,num_input,1))
     mx_target = obs[:,num_input]
 
-    # create input weights
+    # create input weights between -1 and 1
     mw_input_hidden = np.matrix((np.random.random((num_input + 1, num_input + 1)) * 2) - 1)
 
-    # create output weights
+    # create output weights between -1 and 1
     mw_hidden_output = np.matrix((np.random.random((num_input + 1, num_output)) * 2) - 1)
-
-    # print "random mw_input_hidden: ", "\n", mw_input_hidden 
-    # print "random mw_hidden_output: ", "\n", mw_hidden_output, "\n"  
 
     # repeat for num iterations
     for i in range(iterations):             
 
         # go through each observation
-        for j in range(len(mx_inputs)):       
-
-            print "---------------------------"            
+        for j in range(len(mx_inputs)):                
 
             # add in bias column of 1's
             input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
 
-            print "observation: ", mx_inputs[j], "\n"
-
             # call forward prop
             mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
-
-            print "output_after_first_forward_prop: ", mn_output, "\n"
 
             # call backward prop
             hidden_deltas, output_deltas = backwardProp(mx_target[j,0], mn_hidden, mn_output, mw_hidden_output, num_input, num_output)
 
-            print "hidden_deltas: ", hidden_deltas, "\n"
-            print "output_deltas: ", output_deltas, "\n"
-
             # update weights
             mw_input_hidden, mw_hidden_output = updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output)
 
-            print "mw_input_hidden: ", "\n", mw_input_hidden 
-            print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
-            
-            mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
-            
-            print "output_after_second_forward_prop: ", mn_output, "\n"
-
     def predict(obs):
+        # returns the output nodes after we call forwardProp one more time
+        
         mn_hidden, mn_output = forwardProp(obs, mw_input_hidden, mw_hidden_output)
-        # print "mw_input_hidden: ", "\n", mw_input_hidden 
-        # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
         return mn_output
 
     return predict
@@ -123,7 +104,7 @@ def forwardProp(row, mw_input_hidden, mw_hidden_output):
         mn_hidden[0,i] = sigmoid(a_hidden[0,i])    
 
     # set bias node back to 1.0
-    mn_hidden[0,0] = 1.0   
+    mn_hidden[0,0] = 1.0       
 
     # 1 dimensional output activation matrix
     a_output = mn_hidden * mw_hidden_output
@@ -158,8 +139,6 @@ def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_
     # calculating the hidden layer deltas
     for i in range(mn_hidden.shape[1]):
         weighted_output_sum = 0.0
-        # sum(weight to output node j * delta of output node j)
-        # TODO: this might be taking the wrong length
         for j in range(len(output_deltas)):
             weighted_output_sum += (mw_hidden_output[i,j] * output_deltas[j])
 
@@ -170,22 +149,16 @@ def backwardProp(target, mn_hidden, mn_output, mw_hidden_output, num_input, num_
 
 def updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output):
     # return updated input and output weights 
-    
-    # pdb.set_trace()
 
     # update hidden_output weights
     for i in range(mn_hidden.shape[1]):       
         for j in range(mn_output.shape[1]):
             mw_hidden_output[i,j] = mw_hidden_output[i,j] + (learn_rate * mn_hidden[0,i] * output_deltas[j])    
 
-    # pdb.set_trace()
-
     # update input_hidden weights
     for i in range(input_row_with_bias.shape[1]):       
         for j in range(mn_hidden.shape[1]):         
             mw_input_hidden[i,j] = mw_input_hidden[i,j] + (learn_rate * input_row_with_bias[0,i] * hidden_deltas[j])
-
-    # pdb.set_trace()
 
     return mw_input_hidden, mw_hidden_output
 
@@ -204,14 +177,12 @@ def create_desired(target, num_output):
     desired = [0.0] * num_output
 
     if num_output == 1: desired[0] = target # xor
-    else: desired[target] = 1.0
+    else: desired[int(target)] = 1.0
 
     return desired
 
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",3,0.1,0.1)
-
-    # do some stuff with the results
+    testNeuralNetLearner("xor",10000,0.1,0.1)
 
