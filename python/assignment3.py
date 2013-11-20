@@ -12,7 +12,7 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
     if data == "xor":
         ds = DataSet(name='../data/xor')
         num_input = 2
-        num_output = 2
+        num_output = 1
         num_hl = 1 # number of hidden layers
     elif data == "xorm":
         ds = DataSet(name='../data/xorm')
@@ -30,18 +30,20 @@ def testNeuralNetLearner(data, iterations=1000, learn_rate=0.1, momentum=0.1):
         num_output = 10
         num_hl = 1 # number of hidden layers
 
-    for x in range(20):
+    # for x in range(20):
 
-        # create the learner with the matrix
-        NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
-     
-        # create a test observation
-        obs = np.matrix(ds.examples)[3]
+    # create the learner with the matrix
+    NNlearner = createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_rate, momentum)
 
-        print obs
+    # create a test observation
+    obs = np.matrix(ds.examples)
+ 
+    for o in obs:
+
+        print o
 
         # test the learner (cross validation)
-        classification = NNlearner(obs)
+        classification = NNlearner(o)
 
         print "classification: ", classification
          
@@ -65,38 +67,37 @@ def createNeuralNetLearner(ds, num_input, num_output, num_hl, iterations, learn_
 
     # repeat for num iterations
     for i in range(iterations):             
-    
-        # print "----"     
-
-        # pdb.set_trace()
 
         # go through each observation
-        for j in range(len(mx_inputs)):              
+        for j in range(len(mx_inputs)):       
 
-            # pdb.set_trace()
+            print "---------------------------"            
 
             # add in bias column of 1's
-            input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))           
+            input_row_with_bias = np.matrix(np.append(1.0,mx_inputs[j]))            
+
+            print "observation: ", mx_inputs[j], "\n"
 
             # call forward prop
             mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
 
-
-            # pdb.set_trace()
-            # print "mn_output: ", "\n", mn_output, "\n"    
+            print "output_after_first_forward_prop: ", mn_output, "\n"
 
             # call backward prop
             hidden_deltas, output_deltas = backwardProp(mx_target[j,0], mn_hidden, mn_output, mw_hidden_output, num_input, num_output)
 
+            print "hidden_deltas: ", hidden_deltas, "\n"
+            print "output_deltas: ", output_deltas, "\n"
 
-            # pdb.set_trace()
             # update weights
             mw_input_hidden, mw_hidden_output = updateWeights(learn_rate, mw_input_hidden, mw_hidden_output, hidden_deltas, output_deltas, input_row_with_bias, mn_hidden, mn_output)
 
-            # pdb.set_trace()
-
-            # print "mw_input_hidden: ", "\n", mw_input_hidden 
-            # print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
+            print "mw_input_hidden: ", "\n", mw_input_hidden 
+            print "mw_hidden_output: ", "\n", mw_hidden_output, "\n"
+            
+            mn_hidden, mn_output = forwardProp(input_row_with_bias,mw_input_hidden,mw_hidden_output)       
+            
+            print "output_after_second_forward_prop: ", mn_output, "\n"
 
     def predict(obs):
         mn_hidden, mn_output = forwardProp(obs, mw_input_hidden, mw_hidden_output)
@@ -210,7 +211,7 @@ def create_desired(target, num_output):
 
 if __name__ == "__main__":
 
-    testNeuralNetLearner("xor",10000,0.1,0.1)
+    testNeuralNetLearner("xor",3,0.1,0.1)
 
     # do some stuff with the results
 
