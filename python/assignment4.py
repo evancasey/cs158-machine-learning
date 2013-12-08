@@ -27,8 +27,8 @@ def createKMeansLearner(ds,num_clusters=10):
 
     cluster_output_map = getClusterOutputMap(ds,kmeans)
 
-    def predict(obs):
-        cluster = kmeans.predict(obs)
+    def predict(obs):        r
+        cluster = kmeans.predict(obs[0:256])[0]   
         return cluster_output_map[cluster]
 
     return predict
@@ -39,7 +39,7 @@ def getClusterOutputMap(ds,learner):
 
     cluster_output_map = {}
     for row in ds.examples:
-        cluster = learner.predict(row[:-1])[0]        
+        cluster = learner.predict(row[:-1])[0]            
         cluster_output_map[cluster] = row[-1]
 
     return cluster_output_map
@@ -49,17 +49,15 @@ def testKMeansLearner(ds):
     ''' Takes a kmeans learner and test data and 
         runs cross validation '''
 
-    data = fetchData()
-    learner = createKMeansLearner(data)
-    results = cross_validation(learner, ds)
-
-    pdb.set_trace()
+    data = fetchData()    
+    return cross_validation(createKMeansLearner, ds)    
     
 
 if __name__ == '__main__':
 
     data = fetchData()
+    results = testKMeansLearner(data)
 
-    testKMeansLearner(data)
+    print "10-Fold Cross Validation: ", results
 
 
