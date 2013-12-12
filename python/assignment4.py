@@ -29,8 +29,9 @@ def createKMeansLearner(ds,num_clusters=10):
 
     kmeans = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
     examples = [row[:-1] for row in ds.examples]
-    norm_examples = scale(examples).tolist()    
-    kmeans.fit(norm_examples)
+    #norm_examples = scale(examples).tolist()    
+    #kmeans.fit(norm_examples)
+    kmeans.fit(examples)
 
     cluster_output_map = getClusterOutputMap(ds,kmeans)
 
@@ -48,7 +49,8 @@ def createPCAKMeansLearner(ds,num_clusters=10):
     norm_examples = scale(examples).tolist()    
 
     #reduce dims with PCA and fit our learner
-    reduced_data = PCA(n_components=2).fit_transform(norm_examples)
+    #reduced_data = PCA(n_components=2).fit_transform(norm_examples)
+    reduced_data = PCA(n_components=2).fit_transform(examples)
     pca_kmeans = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
     pca_kmeans.fit(reduced_data)
 
@@ -224,12 +226,18 @@ def plotKMeansGrid(ds,num_clusters=10):
             elif int(img[-1]) != rep_digit and len(incor_img_list) < 5:
                 incor_img_list.append(img[:-1])
 
+        #blank images if the row isn't full
+        while(len(cor_img_list) < 5):
+            cor_img_list.append([0]*256)
+        while(len(incor_img_list) < 5):
+            incor_img_list.append([0]*256)
+            
         cum_img_list += cor_img_list + incor_img_list
         
     for i,img in enumerate(cum_img_list):
 
         #create a new subplot for each image
-        plot = pl.subplot(10,11,i)
+        plot = pl.subplot(10,11,i+1)
         plot.xaxis.set_visible(False)
         plot.yaxis.set_visible(False)
         pl.xlim([0,16])
@@ -253,7 +261,7 @@ if __name__ == '__main__':
     # results = testKMeansLearner(data,createPCAKMeansLearner)
     # print "PCA Kmeans: ", results
 
-    # plotPCAKMeansLearner(data,createPCAKMeansLearner)
+    plotPCAKMeansLearner(data)
     
-    plotKMeansGrid(data)
+    #plotKMeansGrid(data)
 
