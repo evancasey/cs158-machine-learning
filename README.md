@@ -1,6 +1,11 @@
 CS158: Machine Learning
 ==================
 
-Assignment 3: Implementation of a Neural Net Learner for the Semeion Handwritten Digit Data Set (from UCI Machine Learning Repository). Adapted from Artificial Intelligence: A Modern Approach by Stuart Russell and Peter Norvig.
+A collection of problem set solutions for CS158: Machine Learning.
 
+Topics include:
 
+* Decision tree learning
+* K-means clustering
+* Neural network/perceptron learning algorithm
+* Principal Component Analysis
